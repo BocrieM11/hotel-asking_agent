@@ -1,0 +1,8 @@
+node_modules/
+engine/logs/
+engine/config/llm-config.json
+engine/ecosystem.config.js
+.env
+*.log
+.DS_Store
+.claude/
