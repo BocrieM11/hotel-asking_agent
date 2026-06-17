@@ -1,0 +1,20 @@
+{
+  "name": "hotel-concierge",
+  "version": "1.0.0",
+  "description": "基于 **DeepSeek LLM + BRD 后处理引擎** 的酒店智能问询系统，覆盖 FAQ 知识问答、天气查询、时间查询、酒店呼叫四大场景，支持多轮对话和自然语言回复。",
+  "main": "index.js",
+  "directories": {
+    "doc": "docs"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@langchain/core": "^1.1.49",
+    "@langchain/langgraph": "^1.4.2",
+    "@langchain/ollama": "^1.2.7"
+  }
+}

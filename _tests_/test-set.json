@@ -1,0 +1,50 @@
+[
+  {"category":"餐饮-引导","q":"酒店有什么好吃的？","expect":"中餐/西餐/葡国菜三类引导"},
+  {"category":"餐饮-引导","q":"有什么吃的？","expect":"中餐/西餐/葡国菜引导"},
+  {"category":"餐饮-指代","q":"有没有送餐到房间？","expect":"送餐/客房用餐服务"},
+  {"category":"餐饮-指代","q":"自助餐几点有？","expect":"早餐06:30/时间段"},
+  {"category":"餐饮-精准","q":"葡国菜有什么推荐？","expect":"小岛葡国餐厅/葡国鸡/马介休"},
+  {"category":"餐饮-精准","q":"附近哪里有葡挞？","expect":"安德鲁/安德鲁葡挞"},
+  {"category":"餐饮-精准","q":"Lady M在哪里？","expect":"大堂/蛋糕/甜品"},
+
+  {"category":"设施-引导","q":"酒店有什么设施？","expect":"泳池/健身房/SPA/购物/贡多拉等5+选项"},
+  {"category":"设施-精准","q":"泳池在哪？几点开门？","expect":"户外/园林/08:00或营业时间"},
+  {"category":"设施-精准","q":"健身房要钱吗？","expect":"免费/住客免费"},
+  {"category":"设施-精准","q":"有SPA吗？","expect":"水疗/SPA/5楼"},
+  {"category":"设施-精准","q":"WiFi密码是多少？","expect":"免费WiFi/连接方式"},
+  {"category":"设施-精准","q":"可以加床吗？","expect":"加床/政策"},
+
+  {"category":"入住退房","q":"几点退房？","expect":"退房时间/12:00或11:00"},
+  {"category":"入住退房","q":"可以延迟退房吗？","expect":"延迟退房/视房态"},
+  {"category":"入住退房","q":"入住要押金吗？","expect":"押金/信用卡/预授权"},
+
+  {"category":"交通出行","q":"怎么从机场到酒店？","expect":"穿梭巴士/免费/机场线"},
+  {"category":"交通出行","q":"有免费巴士吗？","expect":"穿梭巴士/免费"},
+  {"category":"交通出行","q":"去官也街怎么走？","expect":"步行/10分钟"},
+
+  {"category":"周边旅游","q":"附近有什么好玩的？","expect":"贡多拉/teamLab/巴黎人铁塔/官也街"},
+  {"category":"周边旅游","q":"贡多拉船多少钱？","expect":"贡多拉/收费/价格"},
+  {"category":"周边旅游","q":"teamLab怎么去？","expect":"威尼斯人内部或周边"},
+
+  {"category":"天气时间","q":"今天天气怎么样？","expect":"温度/°C/天气"},
+  {"category":"天气时间","q":"北京今天几度？","expect":"北京/温度"},
+  {"category":"天气时间","q":"现在几点了？","expect":"时间/具体时间"},
+
+  {"category":"边界拒绝","q":"帮我送毛巾到房间","expect":"客房服务/拨打前台或引导"},
+  {"category":"边界拒绝","q":"帮我订个餐厅","expect":"预订/帮您或转接"},
+
+  {"category":"英文餐饮","q":"What time is breakfast?","expect":"breakfast/06:30/breakfast hours"},
+  {"category":"英文餐饮","q":"Is there a buffet?","expect":"buffet/Bambu/自助"},
+  {"category":"英文设施","q":"Where is the pool?","expect":"pool/outdoor/pool hours"},
+  {"category":"英文设施","q":"Do you have free wifi?","expect":"wifi/free wifi"},
+
+  {"category":"粤语餐饮","q":"早餐几点有得食？","expect":"早餐/06:30"},
+  {"category":"粤语设施","q":"泳池响边度？","expect":"泳池/位置"},
+
+  {"category":"多轮指代","q":"介绍一下酒店","expect":"威尼斯人/概况或引导选项"},
+  {"category":"多轮指代","q":"退房时间是几点","expect":"退房时间"},
+  {"category":"多轮指代","q":"有停车场吗","expect":"停车/收费或免费"},
+
+  {"category":"主动推荐","q":"晚上有什么推荐的？","expect":"巴黎人铁塔/夜景或晚间推荐"},
+  {"category":"主动推荐-早餐","q":"早上好","expect":"问候/早餐或设施引导"}
+]

@@ -1,0 +1,79 @@
+{
+  "date": "2026-06-15T08:56:08.725Z",
+  "engine": "LangGraph v4",
+  "model": "qwen3:8b",
+  "total": 31,
+  "pass": 17,
+  "fail": 0,
+  "rate": "54.8%",
+  "details": [
+    {
+      "name": "时间-澳门(默认)",
+      "status": "PASS"
+    },
+    {
+      "name": "时间-纽约",
+      "status": "PASS"
+    },
+    {
+      "name": "时间-无效城市回退澳门",
+      "status": "PASS"
+    },
+    {
+      "name": "分类-天气→weather",
+      "status": "PASS"
+    },
+    {
+      "name": "分类-天气+城市",
+      "status": "PASS"
+    },
+    {
+      "name": "分类-时间→time",
+      "status": "PASS"
+    },
+    {
+      "name": "分类-时间+城市",
+      "status": "PASS"
+    },
+    {
+      "name": "分类-服务拒绝→reject",
+      "status": "PASS"
+    },
+    {
+      "name": "分类-\"准备咖啡\"→reject",
+      "status": "PASS"
+    },
+    {
+      "name": "分类-信息查询→kb",
+      "status": "PASS"
+    },
+    {
+      "name": "分类-问候→kb(LLM处理)",
+      "status": "PASS"
+    },
+    {
+      "name": "KB-泳池",
+      "status": "PASS"
+    },
+    {
+      "name": "KB-早餐",
+      "status": "PASS"
+    },
+    {
+      "name": "KB-WiFi",
+      "status": "PASS"
+    },
+    {
+      "name": "KB-葡国菜",
+      "status": "PASS"
+    },
+    {
+      "name": "KB-交通",
+      "status": "PASS"
+    },
+    {
+      "name": "KB-退房",
+      "status": "PASS"
+    }
+  ]
+}

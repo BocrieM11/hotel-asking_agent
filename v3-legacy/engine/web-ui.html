@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>小云 · 酒店管家 | Xiao Yun · Hotel Concierge</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','PingFang SC','Microsoft YaHei',sans-serif;
+  background:linear-gradient(135deg,#e8f0fe 0%,#f0f4f8 50%,#e8f5e9 100%);
+  height:100vh;display:flex;justify-content:center;align-items:center
+}
+.chat-container{width:100%;max-width:720px;height:100vh;max-height:900px;display:flex;flex-direction:column;background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 24px rgba(0,0,0,.06),0 8px 48px rgba(0,0,0,.04);margin:16px}
+.header{background:#fff;padding:18px 24px 12px;border-bottom:1px solid #eef2f7;display:flex;align-items:center;gap:12px}
+.header .avatar{width:42px;height:42px;border-radius:12px;background:linear-gradient(135deg,#5b9bd5,#70c5c0);display:flex;align-items:center;justify-content:center;font-size:20px;color:#fff}
+.header .info h1{font-size:17px;font-weight:600;color:#1e293b;margin:0}
+.header .info .sub{font-size:12px;color:#94a3b8;margin-top:2px}
+.header .dot{width:7px;height:7px;border-radius:50%;background:#4ade80;margin-left:auto}
+.header .lang-switch{display:flex;gap:4px;margin-left:8px}
+.header .lang-switch button{padding:3px 10px;border-radius:12px;border:1px solid #e2e8f0;background:#fff;color:#64748b;font-size:11px;cursor:pointer;transition:all .15s}
+.header .lang-switch button.active{background:#5b9bd5;color:#fff;border-color:#5b9bd5}
+.quick-btns{display:flex;gap:8px;padding:8px 20px 12px;flex-wrap:wrap;border-bottom:1px solid #f8fafc}
+.quick-btns button{padding:7px 15px;border-radius:20px;border:1px solid #e2e8f0;background:#f8fafc;color:#475569;font-size:13px;cursor:pointer;transition:all .15s;white-space:nowrap}
+.quick-btns button:hover{background:#e0f2e9;border-color:#70c5c0;color:#1e293b}
+.messages{flex:1;overflow-y:auto;padding:20px 24px;display:flex;flex-direction:column;gap:16px}
+.messages::-webkit-scrollbar{width:4px}
+.messages::-webkit-scrollbar-thumb{background:#e2e8f0;border-radius:2px}
+.msg{max-width:82%;padding:12px 16px;border-radius:14px;line-height:1.6;font-size:14px;word-break:break-word}
+.msg.user{align-self:flex-end;background:#5b9bd5;color:#fff;border-bottom-right-radius:6px;box-shadow:0 2px 8px rgba(91,155,213,.25)}
+.msg.bot{align-self:flex-start;background:#f8fafc;color:#334155;border-bottom-left-radius:6px;max-width:90%;border:1px solid #f1f5f9;font-size:13.5px;line-height:1.7}
+.msg.bot b{color:#1e293b}
+.msg.bot .label{font-size:11px;color:#94a3b8;margin-bottom:6px;font-weight:500;display:block}
+.msg.reject{align-self:center;background:#fef2f2;color:#b45309;font-size:13px;border:1px solid #fecaca;text-align:center;max-width:90%}
+.msg.reject .label{font-size:11px;color:#dc2626;margin-bottom:3px}
+.msg .time{font-size:10px;color:#94a3b8;margin-top:6px}
+.msg.user .time{color:rgba(255,255,255,.7);text-align:right}
+.msg.bot .time{text-align:right}
+.typing{display:flex;gap:5px;padding:12px 16px;align-self:flex-start}
+.typing span{width:7px;height:7px;border-radius:50%;background:#cbd5e1;animation:typing 1.3s infinite}
+.typing span:nth-child(2){animation-delay:.2s}
+.typing span:nth-child(3){animation-delay:.4s}
+@keyframes typing{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-5px)}}
+.weather-card{align-self:flex-start;background:linear-gradient(135deg,#e0f2e9,#d4ecfc);border-radius:12px;padding:14px 16px;font-size:13px;color:#1e293b;max-width:82%}
+.weather-card .city{font-weight:600;font-size:15px}
+.weather-card .temp{font-size:28px;font-weight:700;color:#0f766e}
+.weather-card .detail{color:#64748b;margin-top:4px;font-size:12px}
+.input-area{display:flex;padding:12px 20px 16px;gap:10px;border-top:1px solid #f1f5f9}
+.input-area input{flex:1;padding:12px 18px;border-radius:24px;border:1.5px solid #e2e8f0;background:#f8fafc;color:#1e293b;font-size:14px;outline:none;transition:border-color .2s}
+.input-area input:focus{border-color:#70c5c0;background:#fff}
+.input-area input::placeholder{color:#cbd5e1}
+.input-area button{padding:10px 22px;border-radius:24px;border:none;background:linear-gradient(135deg,#5b9bd5,#70c5c0);color:#fff;font-size:14px;font-weight:500;cursor:pointer;transition:all .2s;white-space:nowrap}
+.input-area button:hover{opacity:.9;transform:translateY(-1px);box-shadow:0 4px 12px rgba(91,155,213,.3)}
+.input-area button:disabled{opacity:.5;transform:none;box-shadow:none;cursor:not-allowed}
+.session-bar{padding:2px 24px 6px;font-size:10px;color:#cbd5e1;text-align:right}
+</style>
+</head>
+<body>
+<div class="chat-container">
+  <div class="header">
+    <div class="avatar">☁️</div>
+    <div class="info">
+      <h1 id="headerTitle">小云 · 酒店管家</h1>
+      <div class="sub">The Venetian Macao · <span id="headerOnline">24h 在线</span></div>
+    </div>
+    <div class="lang-switch">
+      <button id="langZh" class="active" onclick="switchLang('zh-CN')">中</button>
+      <button id="langEn" onclick="switchLang('en-US')">EN</button>
+    </div>
+    <div class="dot" title="在线"></div>
+  </div>
+  <div class="quick-btns" id="quickBtns"></div>
+  <div class="messages" id="messages"></div>
+  <div class="input-area">
+    <input id="input" autofocus onkeydown="if(event.key==='Enter')send()">
+    <button id="sendBtn" onclick="send()"></button>
+  </div>
+</div>
+
+<script>
+// ======================== 多语言文本 ========================
+const T = {
+  'zh-CN': {
+    headerTitle: '小云 · 酒店管家',
+    headerOnline: '24h 在线',
+    placeholder: '输入您的问题…',
+    sendBtn: '发送',
+    rejectLabel: '⚠️ 超出能力范围',
+    welcome: '您好！我是酒店管家小云，有什么可以帮您的吗？<br>早餐、WiFi、游泳池、周边景点……随时问我。',
+    connectionError: '⚠️ 连接失败，请确认服务器已启动',
+    feelsLike: '体感', humidity: '湿度', wind: '风力',
+    quickBtns: [
+      ['🍳 早餐', '早餐几点开始？'],
+      ['📶 WiFi', 'WiFi密码是什么？'],
+      ['🏊 泳池', '游泳池在哪？'],
+      ['🗺️ 周边', '附近有什么好玩的？'],
+      ['🚌 交通', '怎么去机场？'],
+      ['🚪 退房', '退房时间是几点？'],
+      ['🌤️ 天气', '北京天气怎么样？'],
+    ]
+  },
+  'en-US': {
+    headerTitle: 'Xiao Yun · Concierge',
+    headerOnline: '24h Online',
+    placeholder: 'Ask me anything…',
+    sendBtn: 'Send',
+    rejectLabel: '⚠️ Out of Scope',
+    welcome: 'Hello! I\'m Xiao Yun, your hotel concierge. How can I help you?<br>Breakfast, WiFi, swimming pool, nearby attractions — feel free to ask!',
+    connectionError: '⚠️ Connection failed. Please check if the server is running.',
+    feelsLike: 'Feels like', humidity: 'Humidity', wind: 'Wind',
+    quickBtns: [
+      ['🍳 Breakfast', 'what time is breakfast'],
+      ['📶 WiFi', 'what is the wifi password'],
+      ['🏊 Pool', 'where is the swimming pool'],
+      ['🗺️ Nearby', 'what is there to do nearby'],
+      ['🚌 Transport', 'how to get to the airport'],
+      ['🚪 Checkout', 'what time is checkout'],
+      ['🌤️ Weather', 'what is the weather today'],
+    ]
+  }
+};
+
+let currentLocale = 'zh-CN';
+const API = '/engine/chat';
+const sessionId = 'web-' + Date.now();
+
+// ======================== 语言切换 ========================
+function switchLang(locale) {
+  currentLocale = locale;
+  document.getElementById('langZh').className = locale === 'zh-CN' ? 'active' : '';
+  document.getElementById('langEn').className = locale === 'en-US' ? 'active' : '';
+
+  var t = T[locale];
+  document.getElementById('headerTitle').textContent = t.headerTitle;
+  document.getElementById('headerOnline').textContent = t.headerOnline;
+  document.getElementById('input').placeholder = t.placeholder;
+  document.getElementById('sendBtn').textContent = t.sendBtn;
+
+  // 快捷按钮
+  var qb = document.getElementById('quickBtns');
+  qb.innerHTML = '';
+  t.quickBtns.forEach(function(b) {
+    var btn = document.createElement('button');
+    btn.textContent = b[0];
+    btn.onclick = function() { sendQuick(b[1]); };
+    qb.appendChild(btn);
+  });
+
+  // 欢迎消息
+  document.getElementById('messages').innerHTML =
+    '<div class="msg bot"><div class="label">☁️ Xiao Yun</div>' + formatText(t.welcome) + '</div>';
+}
+
+// ======================== 渲染 ========================
+function formatText(text) {
+  return text
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/\*\*(.+?)\*\*/g, '<b>$1</b>')
+    .replace(/\n\n/g, '<br><br>')
+    .replace(/\n/g, '<br>')
+    .replace(/——/g, '—');
+}
+
+function addMsg(role, text, isReject) {
+  var d = document.getElementById('messages');
+  var div = document.createElement('div');
+  div.className = 'msg ' + (isReject ? 'reject' : role);
+  var now = new Date();
+  var time = now.getHours().toString().padStart(2,'0') + ':' + now.getMinutes().toString().padStart(2,'0');
+  if (role === 'bot' && !isReject) {
+    div.innerHTML = '<div class="label">☁️ Xiao Yun</div>' + formatText(text) + '<div class="time">' + time + '</div>';
+  } else if (isReject) {
+    div.innerHTML = '<div class="label">' + T[currentLocale].rejectLabel + '</div>' + formatText(text);
+  } else {
+    div.innerHTML = formatText(text) + '<div class="time">' + time + '</div>';
+  }
+  d.appendChild(div);
+  d.scrollTop = d.scrollHeight;
+}
+
+function addWeatherCard(data) {
+  var d = document.getElementById('messages');
+  var div = document.createElement('div');
+  div.className = 'weather-card';
+  var w = data.weather_data;
+  var t = T[currentLocale];
+  div.innerHTML =
+    '<div class="city">📍 ' + w.location + ' · ' + w.date + '</div>' +
+    '<div class="temp">' + w.temperature + '°C <span style="font-size:14px;font-weight:400;color:#64748b">' + w.condition + '</span></div>' +
+    '<div class="detail">' + t.feelsLike + ' ' + w.feels_like + '°C · ' + t.humidity + ' ' + w.humidity + '% · ' + t.wind + ' ' + (w.wind||'N/A') + '</div>' +
+    (data.outfit_suggestion ? '<div class="detail" style="margin-top:6px">👔 ' + data.outfit_suggestion + '</div>' : '') +
+    '<div class="detail" style="margin-top:4px;font-size:10px;color:#94a3b8">' + (w.source||'') + '</div>';
+  d.appendChild(div);
+  d.scrollTop = d.scrollHeight;
+}
+
+function showTyping() {
+  var d = document.getElementById('messages');
+  var div = document.createElement('div');
+  div.className = 'typing'; div.id = 'typing';
+  div.innerHTML = '<span></span><span></span><span></span>';
+  d.appendChild(div); d.scrollTop = d.scrollHeight;
+}
+function hideTyping() {
+  var e = document.getElementById('typing');
+  if (e) e.remove();
+}
+
+async function sendQuick(msg) {
+  document.getElementById('input').value = msg;
+  await send();
+}
+
+async function send() {
+  var input = document.getElementById('input');
+  var btn = document.getElementById('sendBtn');
+  var msg = input.value.trim();
+  if (!msg) return;
+  addMsg('user', msg);
+  input.value = '';
+  btn.disabled = true;
+  showTyping();
+  try {
+    var resp = await fetch(API, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ message: msg, locale: currentLocale, sessionId: sessionId })
+    });
+    var data = await resp.json();
+    hideTyping();
+    var reply = data.reply || (currentLocale === 'zh-CN' ? '抱歉，暂时无法处理。' : 'Sorry, unable to process.');
+    if (data.result_type === 'reject') {
+      addMsg('bot', reply, true);
+    } else {
+      addMsg('bot', reply);
+    }
+    if (data.weather_data) addWeatherCard(data);
+  } catch (e) {
+    hideTyping();
+    addMsg('bot', T[currentLocale].connectionError, true);
+  }
+  btn.disabled = false;
+  input.focus();
+}
+
+// ======================== 初始化 ========================
+switchLang('zh-CN');
+
+fetch('/').then(r => r.json()).then(d => {
+  document.querySelector('.dot').style.background = d.llm === 'connected' ? '#4ade80' : '#f59e0b';
+  document.querySelector('.dot').title = d.llm === 'connected' ? 'AI Online' : 'Template Mode';
+}).catch(() => {
+  document.querySelector('.dot').style.background = '#ef4444';
+  document.querySelector('.dot').title = 'Offline';
+});
+</script>
+</body>
+</html>

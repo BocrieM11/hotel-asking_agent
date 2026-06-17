@@ -1,0 +1,174 @@
+{
+  "date": "2026-06-16T06:21:14.053Z",
+  "model": "qwen3:8b",
+  "engine": "LangGraph v4",
+  "scenarios": 7,
+  "totalRounds": 18,
+  "totalScore": 90,
+  "avgScore": "12.9",
+  "guideCount": 0,
+  "details": [
+    {
+      "scenario": 1,
+      "turn": 1,
+      "question": "你们酒店正常的入住时间和退房时间是几点？",
+      "reply": "您好，澳门威尼斯人酒店的入住时间是15:00，退房时间是12:00。希望您入住愉快！",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 1,
+      "turn": 2,
+      "question": "如果我早上8点到店，可以提前入住吗？需要额外收费吗？",
+      "reply": "您好，早上8点到达可以寄存行李，提前入住需联系前台确认是否可安排，可能会收取费用。欢迎致电前台0获取帮助。",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 1,
+      "turn": 3,
+      "question": "那最晚可以延迟退房到几点？延迟退房怎么收费？",
+      "reply": "您好，延迟退房最晚可至12:00，具体收费请致电前台0确认。希望您住得愉快！",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 2,
+      "turn": 1,
+      "question": "酒店的标准大床房有哪些配套设施？",
+      "reply": "标准大床房配备空调、迷你吧、保险箱、免费WiFi、浴缸和独立淋浴间。房内还提供熨斗和熨衣板，方便您随时打理衣物。如需其他服务，欢迎随时告诉我！",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 2,
+      "turn": 2,
+      "question": "房间里有免费WiFi和独立卫浴吗？网速怎么样？",
+      "reply": "有的，房间内有免费Wi-Fi和独立卫浴。网速很快，支持多设备同时连接。如需其他帮助，欢迎随时告诉我！",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 2,
+      "turn": 3,
+      "question": "房间可以开窗通风吗？有没有落地窗？",
+      "reply": "可以开窗通风，房间配有落地窗，采光通风都很不错。如需调整窗户开合，可随时告知我。",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 3,
+      "turn": 1,
+      "question": "标准大床房工作日一晚多少钱？周末会涨价吗？",
+      "reply": "标准大床房工作日一晚约1,200澳门元，周末可能会有涨幅，建议提前确认价格。如需预订或了解更多，可拨打0找前台哦！",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 3,
+      "turn": 2,
+      "question": "我预订之后如果临时去不了，可以免费取消吗？",
+      "reply": "抱歉，这属于客房服务范围。您可以拨打房间电话0联系前台，他们会为您安排～",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 3,
+      "turn": 3,
+      "question": "预订需要付定金吗？定金可以退吗？",
+      "reply": "抱歉，这属于客房服务范围。您可以拨打房间电话0联系前台，他们会为您安排～",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 4,
+      "turn": 1,
+      "question": "酒店有免费停车场吗？停车需要预约吗？",
+      "reply": "酒店有免费停车场，车位充足。住店客人可免费停放，无需预约。",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 4,
+      "turn": 2,
+      "question": "酒店早餐是自助吗？早餐时间是几点到几点？",
+      "reply": "酒店早餐是自助形式，时间是早上6:30到10:30。欢迎随时来享用！",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 4,
+      "turn": 3,
+      "question": "可以提供行李寄存服务吗？免费还是收费？",
+      "reply": "当然可以提供行李寄存服务，而且是免费的哦！无论是入住前还是退房后都可以使用。欢迎随时来前台办理！",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 5,
+      "turn": 1,
+      "question": "你们酒店可以带小型宠物入住吗？",
+      "reply": "您好，我们酒店不接受携带宠物入住，导盲犬等工作犬除外。如您有特殊需求，建议提前联系前台确认。",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 5,
+      "turn": 2,
+      "question": "那如果我有小孩，酒店有婴儿床可以免费提供吗？",
+      "reply": "您好，我们酒店免费提供婴儿床，可提前预约。如需儿童看护服务，也可以为您安排。",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 6,
+      "turn": 3,
+      "question": "房间里可以抽烟吗？有没有无烟房？",
+      "reply": "全酒店室内禁烟，仅户外指定区域可吸烟。我们提供无烟房，欢迎选择。",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 7,
+      "turn": 1,
+      "question": "你们酒店怎么样？",
+      "reply": "威尼斯人是澳门最豪华的五星级酒店之一，拥有世界级的赌场、剧院、贡多拉游船和teamLab艺术空间，服务贴心，设施齐全，是度假和商务的理想之选。",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 7,
+      "turn": 2,
+      "question": "这边住宿方便吗？周边有什么配套？",
+      "reply": "威尼斯人酒店交通便利，周边有大运河购物中心、贡多拉游船和多个餐饮娱乐场所，生活配套齐全，购物休闲都很方便。",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    },
+    {
+      "scenario": 7,
+      "turn": 3,
+      "question": "暂时先问问，后续需要再订。",
+      "reply": "欢迎随时来威尼斯人入住！如需预订或咨询，随时找我哦~",
+      "score": 5,
+      "issues": [],
+      "hasGuide": false
+    }
+  ]
+}
