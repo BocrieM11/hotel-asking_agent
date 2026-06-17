@@ -1,215 +1,461 @@
-# 🏨 酒店智能问询 Agent
+# 🏨 酒店问询 Agent
 
-基于 **DeepSeek LLM + BRD 后处理引擎** 的酒店智能问询系统，覆盖 FAQ 知识问答、天气查询、时间查询、酒店呼叫四大场景，支持多轮对话和自然语言回复。
+基于 **LangGraph 状态图 + qwen3:8b + bge-m3 语义RAG** 的澳门威尼斯人酒店智能问询系统。完全本地部署，零云端依赖，零运行成本。
 
 ---
 
-## 目录结构
+## 一、项目结构
 
 ```
 hotel-concierge/
-├── engine/                        # 引擎核心
-│   ├── api-server.js              # HTTP API 服务入口
-│   ├── chat-client.js             # 命令行交互客户端
-│   ├── faq-handler.js             # 问询核心处理器（FAQ/天气/时间/呼叫）
-│   ├── llm-generator.js           # LLM 自然语言生成器
-│   ├── session-store.js           # 多轮会话上下文管理
-│   ├── nlu-adapter.js             # NLU 意图识别适配器
-│   ├── pipeline.js                # BRD §9 8步处理管线
-│   ├── intent-arbiter.js          # 意图裁决器
-│   ├── entity-resolver.js         # 实体解析器（位置/设备/场景）
-│   ├── slot-validator.js          # 槽位校验器（enum/range/clamp）
-│   ├── capability-gate.js         # 能力矩阵门控
-│   ├── risk-guard.js              # 风控红线检查
-│   ├── need-clarify.js            # BRD §6.1 澄清机制
-│   ├── decision-output.js         # BRD §5.2 决策输出
-│   ├── config-loader.js           # 配置表加载与索引
-│   ├── config/                    # 配置表（SSOT）
-│   │   ├── general.json           # 通用枚举表
-│   │   ├── intent-definitions.json # 意图定义表（6个问询意图）
-│   │   ├── slot-definitions.json  # 槽位定义表（22个槽位）
-│   │   ├── capability-matrix.json # 能力矩阵
-│   │   ├── faq-topics.json        # FAQ主题映射（20个主题+关键词）
-│   │   └── lexicon-location.json  # 位置词表
-│   │   ├── location-timezone-map.json # 城市→时区映射
-│   │   └── llm-config.json        # LLM API 配置
-│   └── __tests__/                 # 测试
-│       ├── config-loader.test.js  # 配置完整性测试（28用例）
-│       └── faq-integration.test.js # 端到端集成测试（59用例）
-├── 01-酒店基本信息.md              # 📝 酒店概况/交通/入住须知
-├── 02-房间与设施信息.md            # 📝 房型/健身房/泳池/SPA/贡多拉
-├── 03-餐饮服务信息.md              # 📝 早餐/正餐/送餐/酒吧
-├── 04-周边信息与旅游推荐.md        # 📝 景点/购物/交通指南
-├── 05-常见问题与紧急处理.md        # 📝 40+FAQ/紧急联系方式
-├── 06-酒店政策与附加服务.md        # 📝 预订/取消/支付/会员/投诉
-├── 澳门威尼斯人酒店-信息采集表.md  # 当前酒店数据源
-└── README.md
+│
+├── engine/                           # 引擎核心 (970行)
+│   ├── agent-langgraph.js            # 状态图引擎 (307行)
+│   ├── api-server.js                 # HTTP API 服务 (129行)
+│   ├── web-ui.html                   # Web聊天界面 (267行)
+│   ├── conversation-logger.js        # MD对话日志 (60行)
+│   ├── session-store.js              # 会话持久化 (207行)
+│   └── ecosystem.config.js           # PM2进程守护
+│
+├── kb/                               # 知识库 (6文件, 37KB, 91段落)
+│   ├── 01-酒店基本信息.md             # 地址/交通/特色/前台服务
+│   ├── 02-房间与设施信息.md           # 房型/泳池/健身房/SPA/WiFi
+│   ├── 03-餐饮服务信息.md             # 餐厅/菜单/价格/营业时间
+│   ├── 04-周边信息与旅游推荐.md       # 景点/购物/官也街/交通指南
+│   ├── 05-常见问题与紧急处理.md       # FAQ/医疗/失物/投诉
+│   └── 06-酒店政策与附加服务.md       # 预订/取消/支付/禁烟/宠物
+│
+├── _tests_/                          # 测试套件
+│   ├── 酒店服务.txt ~ 酒店服务3.txt   # 测试题库 (100+112+18题)
+│   ├── unit-test.js                  # 单元测试 (31项)
+│   ├── benchmark.js                  # 性能基准
+│   ├── full-test.js                  # 全量100+题测试
+│   ├── multi-turn-test.js            # 多轮对话测试 (18轮)
+│   └── test-set.json / test-suite.json
+│
+├── docs/                             # 项目文档
+│   ├── BRD全表.md                    # 需求规格说明书
+│   ├── 项目周报-酒店问询Agent.md      # 开发周报
+│   ├── Agent架构升级报告-v2-vs-v3.md  # 架构演进
+│   └── Agent规则手册.md
+│
+├── package.json                      # Node.js 依赖
+└── README.md                         # 本文件
 ```
 
 ---
 
-## 快速开始
+## 二、引擎文件详解
 
-### 1. 配置 LLM API Key
+### 2.1 agent-langgraph.js — 核心状态图引擎
 
-编辑 `engine/config/llm-config.json`：
+**定位**: 整个系统的"大脑"，实现 LangGraph 风格的三节点状态机。
 
-```json
-{
-  "deepseek_api_key": "sk-你的key",
-  "model": "deepseek-chat",
-  "base_url": "https://api.deepseek.com"
-}
+**三节点架构**:
+
+```
+用户输入
+  │
+  ▼
+┌─────────────────────────────────────────────────────────┐
+│ Node 1: classifyNode — 意图分类                          │
+│   关键词路由表:                                            │
+│     weather → 天气关键词 (天气/下雨/几度/weather 等14词)     │
+│     time    → 时间关键词 (几点/时间/星期几/time 等11词)     │
+│     reject  → 服务请求正则 (送/帮/准备/打扫/洗衣 等)       │
+│     kb      → 默认路由 (酒店信息查询)                      │
+└─────────────────────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────────────────────┐
+│ Node 2: executeNode — 工具执行                           │
+│   weather  → Open-Meteo API (免费实时天气)               │
+│   time     → 系统时钟 + IANA 时区映射 (支持30+城市)       │
+│   kb       → bge-m3语义 + 关键词混合检索 (91段落)         │
+│   reject   → 直接跳过                                    │
+└─────────────────────────────────────────────────────────┘
+  │
+  ▼
+┌─────────────────────────────────────────────────────────┐
+│ Node 3: generateNode — LLM生成回复                       │
+│   组装 System Prompt + 工具结果 + 历史对话                 │
+│   调用 qwen3:8b (Ollama GPU 推理)                        │
+│   双重边界保险: 回复后检测越界话术                          │
+└─────────────────────────────────────────────────────────┘
+  │
+  ▼
+输出回复
 ```
 
-> 不配置 Key 也能运行，系统会自动使用内置模板话术。
+**LLM 参数配置**:
 
-### 2. 填写酒店知识库
-
-编辑根目录下 `01-` 到 `06-` 共 6 个 Markdown 文件，填入真实酒店信息。
-
-> 当前已预填**澳门威尼斯人酒店**数据，可直接使用或替换。
-
-### 3. 启动服务
-
-```bash
-cd engine
-node api-server.js
-```
-
-服务运行在 `http://localhost:3009`
-
-### 4. 开始对话
-
-**终端交互（推荐）：**
-
-```bash
-# 另开一个终端
-cd engine
-node chat-client.js
-```
-
-**HTTP 调用：**
-
-```bash
-curl -X POST http://localhost:3009/engine/chat \
-  -H "Content-Type: application/json" \
-  -d '{"message":"早餐几点开始？"}'
-```
-
----
-
-## API 接口
-
-| 方法 | 路径 | 说明 |
+| 参数 | 值 | 说明 |
 |------|------|------|
-| `GET` | `/` | 服务状态、LLM连接状态、会话统计 |
-| `GET` | `/engine/config` | 查看配置版本 |
-| `POST` | `/engine/chat` | 文本对话（支持 sessionId 多轮） |
-| `POST` | `/engine/process` | 结构化 NLU 输入 → 决策输出 |
-| `POST` | `/engine/reload` | 热重载配置表 |
+| `model` | `qwen3:8b` | Q4_K_M 量化, 5.2GB |
+| `think` | `false` | 关闭思维链, 获得干净回复 |
+| `temperature` | `0.7` | 温度: 0=死板, 1.5=随机。对话场景取 0.7 平衡稳定性与自然度 |
+| `top_p` | `0.9` | 核采样: 只考虑累积概率前90%的token, 控制多样性 |
+| `top_k` | `40` | 每步从概率最高的40个token中采样 |
+| `repeat_penalty` | `1.05` | 轻微惩罚重复, 防止循环输出 |
+| `num_predict` | `256` | 最大输出token (≈130-180中文字, 语音10-15秒) |
+| `num_ctx` | `4096` | 上下文窗口 (容纳System Prompt + KB + 历史对话) |
 
-### 请求格式
+**知识库检索参数**:
+
+| 参数 | 值 | 说明 |
+|------|------|------|
+| KB 文件 | 6个 .md | 37KB, 91个段落 |
+| 检索方式 | 关键词40% + bge-m3语义60% | 关键词高分(≥5)时跳过语义, 省200ms |
+| 宽泛问题 | 只给分类标题 (≤80字) | 避免一次性倾倒信息 |
+| 具体问题 | top5 段落 (每段≤600字) | 注入prompt供LLM参考 |
+| 语义模型 | bge-m3:latest | 1.2GB, 1024维向量, 启动时预构建索引(~60s) |
+
+**服务边界规则**:
+
+| 被拒绝的请求 | 回复话术 |
+|------|------|
+| 送物取物 (毛巾/伞/水...) | "这属于客房服务，拨0找前台" |
+| 点餐下单 | "需要餐饮部处理，帮您转接" |
+| 控制设备 (开灯/关空调) | 礼貌拒绝 + 指引正确渠道 |
+| 生成工单/预订 | 转接对应部门 |
+
+**环境变量**:
+
+| 变量 | 默认值 | 说明 |
+|------|------|------|
+| `LLM_MODEL` | `qwen3:8b` | Ollama 模型名 |
+| `LLM_BASE_URL` | `http://localhost:11434` | Ollama 服务地址 |
+
+---
+
+### 2.2 api-server.js — HTTP API 服务
+
+**端点**:
+
+| 方法 | 路径 | 功能 | 鉴权 |
+|------|------|------|:--:|
+| `GET` | `/` | 服务状态 | 否 |
+| `GET` | `/health` | 健康检查 + 分析数据(total/cacheSize/model) | 否 |
+| `GET` | `/chat` | Web 聊天界面 | 否 |
+| `POST` | `/engine/chat` | 对话接口 | Bearer Token |
+
+**请求格式** (`POST /engine/chat`):
 
 ```json
 {
-  "message": "游泳池在几楼？",
+  "message": "泳池在哪",
   "locale": "zh-CN",
   "sessionId": "room1201"
 }
 ```
 
-### 响应格式（BRD §5.2）
+**响应格式**:
 
 ```json
 {
-  "final_intent": { "intent_L1": "FAQ_QUERY", "intent_L2": "QUERY", "intent_L3": "DEFAULT" },
-  "final_slots": { "faq_topic": "pool" },
-  "resolved_entities": { "faq_topic": "pool" },
   "result_type": "execute",
-  "reason_code": null,
-  "reply": "酒店户外泳池位于园林区，营业时间08:00-20:00，住客免费...",
-  "decision_trace": { "faq_topic": "pool", ... }
+  "reply": "V泳池在酒店地面及5楼户外园林区...",
+  "session": { "id": "room1201" }
 }
 ```
 
-`result_type` 枚举：`execute`（执行）| `need_clarify`（需要澄清）| `reject`（拒绝）
+**安全配置**:
+
+| 参数 | 默认值 | 说明 |
+|------|------|------|
+| `AUTH_ENABLED` | `true` | 是否启用鉴权 (Web UI 免鉴权) |
+| `API_TOKENS` | `hotel-agent-2026` | 逗号分隔的有效token |
+| 限流 | 60次/分钟/IP | Web UI 请求不限流 |
+| CORS | 全放开 | `Access-Control-Allow-Origin: *` |
+
+**环境变量**:
+
+| 变量 | 默认值 | 说明 |
+|------|------|------|
+| `ENGINE_PORT` | `3009` | 服务端口 |
+| `AUTH_ENABLED` | `true` | 是否鉴权 |
+| `API_TOKENS` | `hotel-agent-2026` | 有效token列表 |
 
 ---
 
-## 功能覆盖
+### 2.3 web-ui.html — Web 聊天界面
 
-### 意图支持（6个）
+**功能**:
+- 中英双语切换 (zh-CN / en-US)
+- 7个快捷按钮, 每个含 4-5 个随机变体问题
+- 天气卡片 (实时温度/体感/湿度/风速)
+- 对话气泡, Markdown 渲染
+- 响应式设计, 适配移动端
 
-| 意图 | 说明 | 风险 |
-|------|------|------|
-| `FAQ_QUERY` | 20个主题酒店知识问答 | 低 |
-| `WEATHER_QUERY` | 天气查询+穿衣建议 | 低 |
-| `TIME_QUERY` | 时间/时区查询 | 低 |
-| `HOTEL_CALL` | 呼叫前台（二次确认） | 高 |
-| `NEED_CLARIFY` | 澄清机制 | 低 |
-| `EXIT` | 退出交互 | 低 |
+---
 
-### FAQ 主题（20个）
+### 2.4 conversation-logger.js — 对话日志
 
-breakfast · gym · wifi · checkout · pool · parking · spa · restaurant · room_service · room_type · facilities · transportation · nearby · policy · payment · membership · emergency · checkin · weather · time
+**格式**: Markdown
 
-### 多轮对话
+**目录结构**: `logs/YYYY-MM-DD/<sessionId>.md`
 
-```bash
-POST /engine/chat { "message": "游泳池在几楼？", "sessionId": "room1201" }
-→ "户外园林区，08:00-20:00"
+**日志示例**:
 
-POST /engine/chat { "message": "收费吗？", "sessionId": "room1201" }
-→ 自动消解为"游泳池收费吗？" → "住客免费使用"
+```markdown
+# 🏨 对话记录
+- 会话ID: room1201
+- 日期: 2026年6月15日星期一
+
+### 🕐 11:27
+👤 住客: 早餐几点
+🤖 小云: Bambu 沨竹自助餐厅, 06:30-10:30
+
+### 🕐 11:28
+👤 住客: 泳池在哪
+🤖 小云: V泳池在酒店地面及5楼户外园林区...
 ```
 
 ---
 
-## 测试
+### 2.5 session-store.js — 会话持久化
+
+存储多轮对话上下文, 支持指代消解 ("它" "这个" "收费吗")。
+
+| 参数 | 值 | 说明 |
+|------|------|------|
+| 存储位置 | `logs/sessions/<id>.json` | JSON 格式 |
+| 保留轮次 | 30轮 | 超过自动截断 |
+| 格式 | `[{role, content}, ...]` | OpenAI 消息格式 |
+
+---
+
+## 三、架构核心流程
+
+### 3.1 一次完整的对话请求
+
+```
+1. HTTP 请求到达 api-server.js
+2. 鉴权检查 (非Web UI)
+3. 限流检查
+4. 调用 agent.chat(message, locale, sessionId)
+   ├─ 4.1 缓存检查 (命中 → 直接返回)
+   ├─ 4.2 classifyNode 意图分类 (代码层关键词路由)
+   ├─ 4.3 executeNode 执行工具
+   │      ├─ weather → Open-Meteo API
+   │      ├─ time    → 系统时钟
+   │      ├─ kb      → bge-m3语义 + 关键词混合检索
+   │      └─ reject  → 直接拒绝
+   ├─ 4.4 generateNode LLM生成
+   │      ├─ 组装 messages: System Prompt + 历史 + 工具结果
+   │      ├─ 调用 Ollama /api/chat → qwen3:8b
+   │      └─ 双重检查: 回复内容是否越界
+   └─ 4.5 保存会话 + 跳过推荐类缓存
+5. 写入对话日志 (MD)
+6. 返回 JSON 响应
+```
+
+### 3.2 知识库检索机制（RAG）
+
+**核心原理：检索→筛选→注入，模型每次只看相关段落，不遍历全库。**
+
+```
+整个知识库 (37KB, 6文件, 91段落)
+        │
+        ▼ keywordSearch() / hybridSearch()
+    只取 top5 相关段落
+        │
+        ▼ 截断每段 ≤600字
+    注入 prompt (约150-200 token)
+        │
+        ▼
+    qwen3:8b 只看这200 token的摘要 + System Prompt
+```
+
+**以"泳池在哪"为例的完整流程：**
+
+```
+用户问"泳池在哪"
+        │
+        ▼
+┌─────────────────────────────────────┐
+│ 1. 关键词拆解: "泳池" "池在" "在哪"   │
+│    + 语义向量 (bge-m3, 高分时跳过)    │
+└─────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────┐
+│ 2. 91段落逐个打分                    │
+│    ✅ "02-房间:V泳池5楼..." score=8  │ ← 命中
+│    ✅ "05-常见:泳池免费..." score=5  │ ← 命中
+│    ❌ "03-餐饮:品粤轩..."  score=0  │ ← 跳过
+│    ❌ "01-基本:地址..."    score=0  │ ← 跳过
+│    ... 87个段落全跳过                │
+└─────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────┐
+│ 3. 只取top5: 约600字               │
+│    → 拼入用户 prompt                 │
+└─────────────────────────────────────┘
+        │
+        ▼
+┌─────────────────────────────────────┐
+│ 4. 发给模型的内容 (约350 token):     │
+│                                     │
+│ System: 你是管家小云...              │
+│ User: [参考数据]                     │
+│  02-房间:V泳池在5楼户外园林区...     │ ← 只这5段
+│  05-常见:住客免费,08:00-20:00       │
+│  [住客问题] 泳池在哪                │
+│  请用管家口吻回复                    │
+└─────────────────────────────────────┘
+        │
+        ▼
+    模型输出: "V泳池在酒店地面及5楼户外园林区..."
+```
+
+**检索策略分两种场景：**
+
+| 场景 | 检索方式 | 注入内容 |
+|------|------|------|
+| 宽泛问题 (有什么好吃的) | 只取分类标题 (≤80字) | 中餐、西餐、葡国菜 → 引导客人选 |
+| 具体问题 (泳池/早餐/WiFi) | top5段落 (≤600字/段) | 完整细节 → 精准回答 |
+
+**两种检索模式：**
+
+```
+强匹配 (score ≥5):
+  关键词召回 → top5 → 直接注入 (跳过语义, 省200ms)
+  例: "泳池在哪" → 关键词直接命中
+
+弱匹配 (score <5):
+  关键词召回(top15) → bge-m3语义余弦重排 → top5 → 注入
+  例: "有地方撸铁吗" → 语义理解→健身房
+```
+
+---
+
+## 四、性能指标
+
+### 4.1 基准测试
+
+| 指标 | 数值 | 说明 |
+|------|------|------|
+| 首token延迟 | 152ms | GPU推理启动 |
+| 输出速率 | 43.7 tok/s | 约30中文字/秒 |
+| 平均输出 | 23 token/次 | 语音友好 |
+| Agent端到端 | ~1.5s | HTTP全链路 |
+| 缓存命中 | ~75ms | 秒回 |
+
+### 4.2 测试集成绩
+
+| 测试集 | 题数 | 命中率 | 说明 |
+|------|:--:|:--:|------|
+| 酒店服务.txt | 100 | 99.0% | 基础FAQ |
+| 酒店服务2.txt | 112 | 99.1% | 深度服务问答 |
+| 酒店服务3.txt | 18轮 | 12.9/15分 | 多轮+无引导性 |
+
+### 4.3 单元测试 (31项)
+
+| 模块 | 用例 | 通过 |
+|------|:--:|:--:|
+| 天气API | 4 | ✅ 4/4 |
+| 时间工具 | 3 | ✅ 3/3 |
+| 意图分类 | 8 | ✅ 8/8 |
+| KB检索 | 6 | ✅ 6/6 |
+| 服务边界 | 4 | ✅ 4/4 |
+| 信息查询(不误杀) | 5 | ✅ 5/5 |
+| 多轮对话 | 1 | ✅ 1/1 |
+
+---
+
+## 五、部署与运行
+
+### 5.1 环境要求
+
+| 组件 | 最低 | 推荐 |
+|------|------|------|
+| Node.js | 16+ | 22 |
+| Ollama | 0.30+ | 最新 |
+| RAM | 16GB | 32GB |
+| GPU | 无 (CPU可用) | RTX 4060 8GB+ |
+| 模型 | qwen3:8b + bge-m3 | — |
+
+### 5.2 安装
+
+```bash
+# 1. 安装 Ollama
+winget install Ollama.Ollama
+
+# 2. 拉取模型
+ollama pull qwen3:8b
+ollama pull bge-m3:latest
+
+# 3. 安装依赖
+cd hotel-concierge
+npm install
+
+# 4. 启动
+cd engine
+node api-server.js
+# 等待 "RAG ✅ 语义索引就绪 (91段落)"
+# 服务运行在 http://localhost:3009
+```
+
+### 5.3 PM2 守护
 
 ```bash
 cd engine
+pm2 start ecosystem.config.js
+pm2 save
+```
 
-# 配置完整性
-node __tests__/config-loader.test.js   # 28用例
+### 5.4 运行测试
 
-# 集成测试
-node __tests__/faq-integration.test.js # 59用例
+```bash
+cd _tests_
+
+# 单元测试
+node unit-test.js
+
+# 性能基准
+node benchmark.js
+
+# 全量测试 (100题)
+node full-test.js
+
+# 多轮对话测试 (18轮)
+node multi-turn-test.js
 ```
 
 ---
 
-## 更换酒店
+## 六、测试用例方法
 
-1. 编辑 `01-` 到 `06-` 共 6 个 `.md` 文件，替换为新的酒店信息
-2. 编辑 `engine/config/faq-topics.json`，同步更新 `answer_hint` 字段
-3. 重启服务：`node api-server.js`
+### 6.1 测试数据
 
-> 示例数据来源：[澳门威尼斯人酒店-信息采集表.md](澳门威尼斯人酒店-信息采集表.md)
+`_tests_/` 目录包含三套测试集:
 
----
+| 文件 | 格式 | 内容 |
+|------|------|------|
+| 酒店服务.txt | 平文本 | 100题, 10大类基础FAQ |
+| 酒店服务2.txt | 平文本 | 112题, 会员/保洁/商务/亲子深度 |
+| 酒店服务3.txt | 多轮场景 | 6场景×3轮, 相关性+引导性+连贯性 |
 
-## BRD 对齐
+### 6.2 运行
 
-本系统严格对齐 [BRD全表.md](../BRD全表.md) 问询子系统部分：
-
-| BRD 章节 | 内容 | 状态 |
-|----------|------|------|
-| §5.1-5.2 | 输入/输出契约 | ✅ |
-| §6 | 统一原因码（14种） | ✅ |
-| §6.1 | NeedClarify 澄清机制 | ✅ |
-| §7 | 风控红线 | ✅ |
-| §9 | 8步后处理流程 | ✅ |
-| §10 | 关键业务规则 | ✅ |
-| §11 | AC1-AC5 验收标准 | ✅ |
+```bash
+cd _tests_
+node full-test.js          # 批量对话 → report-*.json/.txt + conversation-log-*.md
+node multi-turn-test.js    # 多轮对话 → multi-turn-report-*.json/.md
+node benchmark.js          # 性能基准 → benchmark-report.json
+node unit-test.js          # 单元测试 → unit-test-report.json
+```
 
 ---
 
-## 技术栈
+## 七、技术亮点
 
-- **LLM**: DeepSeek API (deepseek-chat) / OpenAI 兼容
-- **运行时**: Node.js
-- **知识库**: Markdown 文件 + 关键词反向索引 + 同义词扩展
-- **配置**: JSON 表驱动（BRD §8 SSOT）
-- **会话**: 内存存储（支持30分钟TTL自动过期）
+- **LangGraph 状态图**: 三节点清晰解耦, 每个节点职责单一, 易于调试和扩展
+- **混合 RAG 检索**: bge-m3 语义向量 + 关键词双路召回, 强匹配跳过语义省时
+- **双重边界保险**: 关键词预处理 + 回复后检测, 确保不越界执行服务请求
+- **GPU 加速**: qwen3:8b RTX 4060 推理, 首token 152ms, 速率 43.7 tok/s
+- **语音友好**: 输出限 200 token, 宽泛给方向/具体精准答
+- **完全本地**: 无需 API Key, 零网络依赖, 数据不出机器
+- **月成本 0 元**: 全部开源模型 + 免费 API

@@ -1,3 +1,12 @@
+<!--
+============================================================
+酒店问询 Agent — Web 聊天界面
+============================================================
+功能: 中英双语 | 快捷按钮(随机变体) | 天气卡片 | 时间显示
+调用: POST /engine/chat ← api-server.js
+部署: PM2 或 node api-server.js
+============================================================
+-->
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -90,13 +99,13 @@ const T = {
     connectionError: '⚠️ 连接失败，请确认服务器已启动',
     feelsLike: '体感', humidity: '湿度', wind: '风力',
     quickBtns: [
-      ['🍳 早餐', '早餐几点开始？'],
-      ['📶 WiFi', 'WiFi密码是什么？'],
-      ['🏊 泳池', '游泳池在哪？'],
-      ['🗺️ 周边', '附近有什么好玩的？'],
-      ['🚌 交通', '怎么去机场？'],
-      ['🚪 退房', '退房时间是几点？'],
-      ['🌤️ 天气', '北京天气怎么样？'],
+      ['🍳 早餐', ['早餐几点开始？','自助早餐在哪里吃？','早餐有什么好吃的推荐？','早餐多少钱一位？','早餐有中式的吗？']],
+      ['📶 WiFi', ['WiFi密码是什么？','WiFi免费吗？','WiFi网速怎么样？','怎么连WiFi？']],
+      ['🏊 泳池', ['泳池在哪？','泳池几点开门？','泳池收费吗？','泳池是室内的还是室外的？']],
+      ['🗺️ 周边', ['附近有什么好吃的？','附近有什么好玩的？','官也街怎么去？','附近哪里逛街比较好？','有什么必打卡的景点？']],
+      ['🚌 交通', ['怎么去机场？','有免费巴士吗？','附近有地铁站吗？','打车方便吗？','去大三巴怎么走？']],
+      ['🚪 退房', ['退房时间是几点？','可以延迟退房吗？','延迟退房怎么收费？','可以寄存行李吗？']],
+      ['🌤️ 天气', ['澳门今天天气怎么样？','明天天气好吗？','需要带伞吗？','最近天气热吗？']],
     ]
   },
   'en-US': {
@@ -109,13 +118,13 @@ const T = {
     connectionError: '⚠️ Connection failed. Please check if the server is running.',
     feelsLike: 'Feels like', humidity: 'Humidity', wind: 'Wind',
     quickBtns: [
-      ['🍳 Breakfast', 'what time is breakfast'],
-      ['📶 WiFi', 'what is the wifi password'],
-      ['🏊 Pool', 'where is the swimming pool'],
-      ['🗺️ Nearby', 'what is there to do nearby'],
-      ['🚌 Transport', 'how to get to the airport'],
-      ['🚪 Checkout', 'what time is checkout'],
-      ['🌤️ Weather', 'what is the weather today'],
+      ['🍳 Breakfast', ['what time is breakfast','is breakfast included','what do you have for breakfast','where is the breakfast buffet']],
+      ['📶 WiFi', ['what is the wifi password','is wifi free','how is the wifi speed','how to connect to wifi']],
+      ['🏊 Pool', ['where is the pool','what time does the pool open','is the pool free for guests','is the pool indoor or outdoor']],
+      ['🗺️ Nearby', ['what restaurants are nearby','what is there to do nearby','how to get to Taipa Village','any good shopping nearby']],
+      ['🚌 Transport', ['how to get to the airport','is there a free shuttle bus','how far is the nearest MTR','can I get a taxi']],
+      ['🚪 Checkout', ['what time is checkout','can I get a late checkout','is there a late checkout fee','can I store my luggage']],
+      ['🌤️ Weather', ['what is the weather today','will it rain today','is it hot outside','what is the temperature']],
     ]
   }
 };
@@ -142,7 +151,7 @@ function switchLang(locale) {
   t.quickBtns.forEach(function(b) {
     var btn = document.createElement('button');
     btn.textContent = b[0];
-    btn.onclick = function() { sendQuick(b[1]); };
+    btn.onclick = function() { var qs = b[1]; sendQuick(Array.isArray(qs) ? qs[Math.floor(Math.random() * qs.length)] : qs); };
     qb.appendChild(btn);
   });
 

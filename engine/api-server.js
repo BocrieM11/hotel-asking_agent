@@ -1,10 +1,22 @@
 /**
- * 酒店问询Agent API v3.2
+ * ============================================================
+ * 酒店问询 Agent — HTTP API 服务
+ * ============================================================
+ *
+ * 端点:
+ *   GET  /              → 服务状态
+ *   GET  /health        → 健康检查 + 分析数据
+ *   GET  /chat          → Web聊天界面
+ *   POST /engine/chat   → 对话接口 { message, locale?, sessionId? }
+ *
+ * 依赖: agent-langgraph.js (核心) + conversation-logger.js (日志)
+ * 启动: node api-server.js [ENGINE_PORT=3009]
+ * ============================================================
  */
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
-const agent = require('./agent');
+const agent = require('./agent-langgraph');
 const convLogger = require('./conversation-logger');
 
 const AUTH_ENABLED = process.env.AUTH_ENABLED !== 'false';
@@ -86,7 +98,7 @@ function start(port = 3009) {
         agent.trackQuery(message);
 
         const reply = await agent.chat(message, locale, sessionId);
-        convLogger.logTurn({ filePath: null }, message, reply, 'AGENT', null);
+        convLogger.log(sessionId, message, reply);
 
         res.writeHead(200);
         res.end(JSON.stringify({ result_type: 'execute', reply, session: { id: sessionId } }));
@@ -106,9 +118,9 @@ function start(port = 3009) {
 
 function readBody(req) {
   return new Promise((resolve, reject) => {
-    let body = '';
-    req.on('data', c => body += c);
-    req.on('end', () => resolve(body));
+    const chunks = [];
+    req.on('data', c => chunks.push(c));
+    req.on('end', () => resolve(Buffer.concat(chunks).toString('utf8')));
     req.on('error', reject);
   });
 }
